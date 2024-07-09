@@ -14,7 +14,7 @@ export class ScheduleService {
 
   findAll() {
     // TODO: add pagination and filtering
-    return this.prismaService.schedule.findMany();
+    return this.prismaService.schedule.findMany({ include: { tasks: true } });
   }
 
   findOne(id: string) {
