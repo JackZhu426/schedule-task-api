@@ -1,0 +1,50 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ● `id`: Universally unique identifier (UUID) for the schedule.
+// ● `account_id`: Integer representing the account associated with the schedule.
+// ● `agent_id`: Integer representing the agent assigned to the schedule.
+// ● `start_time`: DateTime indicating the start time of the schedule.
+// ● `end_time`: DateTime indicating the end time of the schedule.
+model Schedule {
+  id         String   @id @default(uuid())
+  accountId Int
+  agentId   Int
+  startTime DateTime
+  endTime   DateTime
+  tasks      Task[]
+}
+
+// ● `id`: UUID for the task.
+// ● `account_id`: Integer representing the account associated with the task.
+// ● `schedule_id`: UUID referencing the schedule to which the task belongs.
+// ● `start_time`: DateTime indicating the start time of the task.
+// ● `duration`: Integer representing the duration of the task.
+// ● `type`: String enumeration with values 'break' or 'work', indicating the type of task.
+model Task {
+  id          String   @id @default(uuid())
+  accountId  Int
+  scheduleId String
+  startTime  DateTime
+  duration    Int
+  type        TaskType
+  schedule    Schedule @relation(fields: [scheduleId], references: [id])  
+}
+
+// TODO: assign the values
+enum TaskType {
+  BREAK
+  WORK
+}
