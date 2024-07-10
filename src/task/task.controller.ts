@@ -1,13 +1,14 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from "@nestjs/common";
 import { TaskService } from "./task.service";
 import { Prisma } from "@prisma/client";
+import { CreateTaskDTO } from "./dto/task.dto";
 
 @Controller("task")
 export class TaskController {
   constructor(private readonly taskService: TaskService) {}
 
   @Post()
-  create(@Body() createTaskDto: Prisma.TaskCreateInput) {
+  create(@Body() createTaskDto: CreateTaskDTO) {
     return this.taskService.create(createTaskDto);
   }
 
