@@ -1,7 +1,15 @@
-import { Injectable, Logger, InternalServerErrorException } from "@nestjs/common";
+import {
+  Injectable,
+  Logger,
+  InternalServerErrorException,
+  BadRequestException,
+  NotFoundException
+} from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import { PrismaService } from "src/prisma/prisma.service";
 import { ConfigService } from "@nestjs/config";
+import { CreateScheduleDTO } from "./dto/schedule.dto";
+import { isUUID, validate } from "class-validator";
 
 @Injectable()
 export class ScheduleService {
@@ -12,14 +20,51 @@ export class ScheduleService {
     private readonly configService: ConfigService
   ) {}
 
-  create(createScheduleDto: Prisma.ScheduleCreateInput) {
-    // TODO: validate the data before creating the schedule
+  async create(createScheduleDto: CreateScheduleDTO) {
+    // Validate: 1) global validation (ValidationPipe in main.ts), 2) custom validation
+    await this.validateCreateSchedule(createScheduleDto);
+
+    const { accountId, agentId, startTime, endTime, tasks } = createScheduleDto;
 
     try {
-      return this.prismaService.schedule.create({ data: createScheduleDto });
+      const scheduleData: Prisma.ScheduleCreateInput = {
+        accountId,
+        agentId,
+        startTime,
+        endTime,
+        tasks: tasks ? { create: tasks } : undefined
+      };
+
+      return await this.prismaService.schedule.create({ data: scheduleData });
     } catch (error) {
-      this.logger.error(error);
-      return error;
+      this.logger.error("Failed to create schedule:", error.stack);
+
+      console.log("error code:", error.code);
+
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        // P2002: Unique constraint failed
+        if (error.code === "P2002") {
+          throw new BadRequestException("A schedule with these details already exists");
+        }
+      }
+
+      throw new BadRequestException("Failed to create schedule");
+    }
+  }
+
+  private async validateCreateSchedule(schedule: CreateScheduleDTO): Promise<void> {
+    const errors = await validate(schedule);
+    if (errors.length > 0) {
+      throw new BadRequestException(errors);
+    }
+
+    // Additional custom validations
+    if (schedule.startTime < new Date()) {
+      throw new BadRequestException("Start time cannot be in the past");
+    }
+
+    if (schedule.endTime < schedule.startTime) {
+      throw new BadRequestException("End time cannot be before start time");
     }
   }
 
@@ -50,11 +95,27 @@ export class ScheduleService {
     }
   }
 
-  findOne(id: string) {
-    return this.prismaService.schedule.findUnique({ where: { id }, include: { tasks: true } });
+  async findOne(id: string) {
+    if (!isUUID(id)) {
+      throw new BadRequestException(`Invalid schedule ID - ${id}`);
+    }
+
+    try {
+      return await this.prismaService.schedule.findUnique({ where: { id }, include: { tasks: true } });
+    } catch (error) {
+      this.logger.error("Failed to fetch schedule:", error.stack);
+
+      // catch 'NotFoundException' and re-throw it
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+
+      // throw 'InternalServerErrorException' for all other errors
+      throw new NotFoundException(`An error occurred while fetching schedule with ID - ${id}`);
+    }
   }
 
-  update(id: string, updateScheduleDto: Prisma.ScheduleUpdateInput) {
+  async update(id: string, updateScheduleDto: Prisma.ScheduleUpdateInput) {
     // TODO: validate the data before updating the schedule
 
     return this.prismaService.schedule.update({
@@ -63,7 +124,7 @@ export class ScheduleService {
     });
   }
 
-  remove(id: string) {
+  async remove(id: string) {
     return this.prismaService.schedule.delete({ where: { id } });
   }
 }

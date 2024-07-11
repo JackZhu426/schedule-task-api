@@ -1,8 +1,16 @@
-import { Injectable, InternalServerErrorException, Logger, BadRequestException } from "@nestjs/common";
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  BadRequestException,
+  NotFoundException
+} from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { Prisma, Task } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { PrismaService } from "src/prisma/prisma.service";
 import { CreateTaskDTO } from "./dto/task.dto";
+import { isUUID, validate } from "class-validator";
+import { ScheduleService } from "src/schedule/schedule.service";
 
 @Injectable()
 export class TaskService {
@@ -10,23 +18,28 @@ export class TaskService {
 
   constructor(
     private readonly prismaService: PrismaService,
-    private readonly configService: ConfigService
+    private readonly configService: ConfigService,
+    private readonly scheduleService: ScheduleService
   ) {}
 
   async create(createTaskDto: CreateTaskDTO) {
-    // TODO: validate the data before creating the task
+    // Validate: 1) global validation (ValidationPipe in main.ts), 2) custom validation
+    await this.validateCreateTask(createTaskDto);
+
+    const { accountId, startTime, duration, type, scheduleId } = createTaskDto;
+
     try {
       const taskData: Prisma.TaskCreateInput = {
-        accountId: createTaskDto.accountId,
-        startTime: createTaskDto.startTime,
-        duration: createTaskDto.duration,
-        type: createTaskDto.type,
+        accountId,
+        startTime,
+        duration,
+        type,
         schedule: {
-          connect: { id: createTaskDto.scheduleId }
+          connect: { id: scheduleId }
         }
       };
 
-      await this.prismaService.task.create({ data: taskData });
+      return await this.prismaService.task.create({ data: taskData });
     } catch (error) {
       this.logger.error("Failed to create task:", error.stack);
 
@@ -37,7 +50,7 @@ export class TaskService {
         if (error.code === "P2002") {
           throw new BadRequestException("A task with these details already exists");
         } else if (error.code === "P2003" || error.code === "P2025") {
-          // P2003: Foreign key constraint failed
+          // P2003/P2025: Foreign key constraint failed
           throw new BadRequestException(
             `The specified schedule - scheduleId: ${createTaskDto.scheduleId} does not exist`
           );
@@ -45,6 +58,22 @@ export class TaskService {
       }
 
       throw new BadRequestException("Failed to create task");
+    }
+  }
+
+  private async validateCreateTask(task: CreateTaskDTO): Promise<void> {
+    const errors = await validate(task);
+    if (errors.length > 0) {
+      throw new BadRequestException(errors);
+    }
+
+    // Additional custom validations
+    if (task.duration <= 0) {
+      throw new BadRequestException("Duration must be positive");
+    }
+
+    if (task.startTime < new Date()) {
+      throw new BadRequestException("Start time cannot be in the past");
     }
   }
 
@@ -76,15 +105,34 @@ export class TaskService {
     }
   }
 
-  findOne(id: string) {
-    return this.prismaService.task.findUnique({ where: { id } });
+  async findOne(id: string) {
+    if (!isUUID(id)) {
+      throw new BadRequestException(`Invalid task ID - ${id}`);
+    }
+    try {
+      const task = await this.prismaService.task.findUnique({ where: { id } });
+
+      if (!task) {
+        throw new NotFoundException(`Task with ID - ${id} not found`);
+      }
+    } catch (error) {
+      this.logger.error("Failed to fetch task:", error.stack);
+
+      // catch 'NotFoundException' and re-throw it
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+
+      // throw 'InternalServerErrorException' for all other errors
+      throw new InternalServerErrorException(`An error occurred while fetching task with ID - ${id}`);
+    }
   }
 
-  update(id: string, updateTaskDto: Prisma.TaskUpdateInput) {
+  async update(id: string, updateTaskDto: Prisma.TaskUpdateInput) {
     return this.prismaService.task.update({ where: { id }, data: updateTaskDto });
   }
 
-  remove(id: string) {
+  async remove(id: string) {
     return this.prismaService.task.delete({ where: { id } });
   }
 }
