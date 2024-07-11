@@ -8,7 +8,7 @@ import {
 import { ConfigService } from "@nestjs/config";
 import { Prisma } from "@prisma/client";
 import { PrismaService } from "src/prisma/prisma.service";
-import { CreateTaskDTO } from "./dto/task.dto";
+import { CreateTaskDTO, UpdateTaskDTO } from "./dto/task.dto";
 import { isUUID, validate } from "class-validator";
 import { ScheduleService } from "src/schedule/schedule.service";
 
@@ -28,17 +28,17 @@ export class TaskService {
 
     const { accountId, startTime, duration, type, scheduleId } = createTaskDto;
 
-    try {
-      const taskData: Prisma.TaskCreateInput = {
-        accountId,
-        startTime,
-        duration,
-        type,
-        schedule: {
-          connect: { id: scheduleId }
-        }
-      };
+    const taskData: Prisma.TaskCreateInput = {
+      accountId,
+      startTime,
+      duration,
+      type,
+      schedule: {
+        connect: { id: scheduleId }
+      }
+    };
 
+    try {
       return await this.prismaService.task.create({ data: taskData });
     } catch (error) {
       this.logger.error("Failed to create task:", error.stack);
@@ -57,7 +57,7 @@ export class TaskService {
         }
       }
 
-      throw new BadRequestException("Failed to create task");
+      throw new InternalServerErrorException("Failed to create task");
     }
   }
 
@@ -69,10 +69,12 @@ export class TaskService {
     const { scheduleId, startTime: taskStartTime, duration: taskDuration } = task;
 
     // Additional custom validations
+    // 1. input 'duration' must be positive
     if (taskDuration <= 0) {
       throw new BadRequestException("Duration must be positive");
     }
 
+    // 2. 'startTime' must be in the future
     if (taskStartTime < new Date()) {
       throw new BadRequestException("Start time cannot be in the past");
     }
@@ -80,16 +82,19 @@ export class TaskService {
     try {
       const schedule = await this.scheduleService.findOne(scheduleId);
 
+      // 3. 'schedule' must exist - i.e. 'scheduleId' must be valid
       if (!schedule) {
         throw new BadRequestException(`Schedule with ID - ${scheduleId} not found! Please input the right schedule ID`);
       }
 
       const { startTime: scheduleStartTime, endTime: scheduleEndTime } = schedule;
 
+      // 4. 'task' start time must be after 'schedule' start time
       if (taskStartTime < scheduleStartTime) {
         throw new BadRequestException("'Task' start time cannot be before 'Schedule' start time");
       }
 
+      // 5. 'task' end time must be before 'schedule' end time
       if (taskStartTime.getTime() + taskDuration > scheduleEndTime.getTime()) {
         throw new BadRequestException("'Task' end time cannot be after 'Schedule' end time");
       }
@@ -149,8 +154,37 @@ export class TaskService {
     }
   }
 
-  async update(id: string, updateTaskDto: Prisma.TaskUpdateInput) {
-    return this.prismaService.task.update({ where: { id }, data: updateTaskDto });
+  async update(id: string, updateTaskDto: UpdateTaskDTO) {
+    // TODO: Validate: 1) global validation (ValidationPipe in main.ts), 2) custom validation
+
+    const { accountId, startTime, duration, type, scheduleId } = updateTaskDto;
+
+    const taskData: Prisma.TaskCreateInput = {
+      accountId,
+      startTime,
+      duration,
+      type,
+      schedule: {
+        connect: { id: scheduleId }
+      }
+    };
+
+    try {
+      return await this.prismaService.task.update({ where: { id }, data: taskData });
+    } catch (error) {
+      this.logger.error("Failed to create task:", error.stack);
+
+      console.log("error code:", error.code);
+
+      if (error.code === "P2003" || error.code === "P2025") {
+        // P2003/P2025: Foreign key constraint failed
+        throw new BadRequestException(
+          `The specified schedule - scheduleId: ${updateTaskDto.scheduleId} does not exist`
+        );
+      }
+
+      throw new InternalServerErrorException("Failed to update task");
+    }
   }
 
   async remove(id: string) {

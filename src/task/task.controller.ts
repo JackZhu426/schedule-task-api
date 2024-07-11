@@ -1,7 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from "@nestjs/common";
 import { TaskService } from "./task.service";
-import { Prisma } from "@prisma/client";
-import { CreateTaskDTO } from "./dto/task.dto";
+import { CreateTaskDTO, UpdateTaskDTO } from "./dto/task.dto";
 
 @Controller("task")
 export class TaskController {
@@ -23,7 +22,7 @@ export class TaskController {
   }
 
   @Patch(":id")
-  update(@Param("id") id: string, @Body() updateTaskDto: Prisma.TaskUpdateInput) {
+  update(@Param("id") id: string, @Body() updateTaskDto: UpdateTaskDTO) {
     return this.taskService.update(id, updateTaskDto);
   }
 
