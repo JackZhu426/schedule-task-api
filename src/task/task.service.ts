@@ -141,6 +141,8 @@ export class TaskService {
       if (!task) {
         throw new NotFoundException(`Task with ID - ${id} not found`);
       }
+
+      return task;
     } catch (error) {
       this.logger.error("Failed to fetch task:", error.stack);
 
@@ -156,6 +158,7 @@ export class TaskService {
 
   async update(id: string, updateTaskDto: UpdateTaskDTO) {
     // TODO: Validate: 1) global validation (ValidationPipe in main.ts), 2) custom validation
+    await this.validateUpdateTask(updateTaskDto);
 
     const { accountId, startTime, duration, type, scheduleId } = updateTaskDto;
 
@@ -187,7 +190,51 @@ export class TaskService {
     }
   }
 
+  private async validateUpdateTask(task: UpdateTaskDTO): Promise<void> {
+    const errors = await validate(task);
+
+    if (errors.length > 0) {
+      throw new BadRequestException(errors);
+    }
+    const { scheduleId, startTime: taskStartTime, duration: taskDuration } = task;
+
+    // Additional custom validations
+    // 1. input 'duration' must be positive
+    if (taskDuration <= 0) {
+      throw new BadRequestException("Duration must be positive");
+    }
+
+    // 2. 'startTime' must be in the future
+    if (taskStartTime < new Date()) {
+      throw new BadRequestException("Start time cannot be in the past");
+    }
+
+    try {
+      const schedule = await this.scheduleService.findOne(scheduleId);
+
+      // 3. 'schedule' must exist - i.e. 'scheduleId' must be valid
+      if (!schedule) {
+        throw new BadRequestException(`Schedule with ID - ${scheduleId} not found! Please input the right schedule ID`);
+      }
+
+      const { startTime: scheduleStartTime, endTime: scheduleEndTime } = schedule;
+
+      // 4. 'task' start time must be after 'schedule' start time
+      if (taskStartTime < scheduleStartTime) {
+        throw new BadRequestException("'Task' start time cannot be before 'Schedule' start time");
+      }
+
+      // 5. 'task' end time must be before 'schedule' end time
+      if (taskStartTime.getTime() + taskDuration > scheduleEndTime.getTime()) {
+        throw new BadRequestException("'Task' end time cannot be after 'Schedule' end time");
+      }
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // TODO: Implement the 'remove' method
   async remove(id: string) {
-    return this.prismaService.task.delete({ where: { id } });
+    return await this.prismaService.task.delete({ where: { id } });
   }
 }
