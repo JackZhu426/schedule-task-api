@@ -84,10 +84,14 @@ export class TaskService {
         throw new BadRequestException(`Schedule with ID - ${scheduleId} not found! Please input the right schedule ID`);
       }
 
-      const { startTime: scheduleStartTime } = schedule;
+      const { startTime: scheduleStartTime, endTime: scheduleEndTime } = schedule;
 
       if (taskStartTime < scheduleStartTime) {
-        throw new BadRequestException("Task start time cannot be before schedule start time");
+        throw new BadRequestException("'Task' start time cannot be before 'Schedule' start time");
+      }
+
+      if (taskStartTime.getTime() + taskDuration > scheduleEndTime.getTime()) {
+        throw new BadRequestException("'Task' end time cannot be after 'Schedule' end time");
       }
     } catch (error) {
       throw error;

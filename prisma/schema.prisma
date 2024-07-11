@@ -43,7 +43,7 @@ model Task {
   schedule    Schedule @relation(fields: [scheduleId], references: [id])  
 }
 
-// TODO: assign the values
+
 enum TaskType {
   BREAK
   WORK
