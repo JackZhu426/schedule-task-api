@@ -66,14 +66,31 @@ export class TaskService {
     if (errors.length > 0) {
       throw new BadRequestException(errors);
     }
+    const { scheduleId, startTime: taskStartTime, duration: taskDuration } = task;
 
     // Additional custom validations
-    if (task.duration <= 0) {
+    if (taskDuration <= 0) {
       throw new BadRequestException("Duration must be positive");
     }
 
-    if (task.startTime < new Date()) {
+    if (taskStartTime < new Date()) {
       throw new BadRequestException("Start time cannot be in the past");
+    }
+
+    try {
+      const schedule = await this.scheduleService.findOne(scheduleId);
+
+      if (!schedule) {
+        throw new BadRequestException(`Schedule with ID - ${scheduleId} not found! Please input the right schedule ID`);
+      }
+
+      const { startTime: scheduleStartTime } = schedule;
+
+      if (taskStartTime < scheduleStartTime) {
+        throw new BadRequestException("Task start time cannot be before schedule start time");
+      }
+    } catch (error) {
+      throw error;
     }
   }
 
