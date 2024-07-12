@@ -101,17 +101,17 @@ export class ScheduleService {
     }
 
     try {
-      return await this.prismaService.schedule.findUnique({ where: { id }, include: { tasks: true } });
+      const res = await this.prismaService.schedule.findUnique({ where: { id }, include: { tasks: true } });
+
+      if (!res) {
+        throw new NotFoundException(`Schedule with ID - ${id} not found`);
+      }
+
+      return res;
     } catch (error) {
       this.logger.error("Failed to fetch schedule:", error.stack);
 
-      // catch 'NotFoundException' and re-throw it
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
-
-      // throw 'InternalServerErrorException' for all other errors
-      throw new NotFoundException(`An error occurred while fetching schedule with ID - ${id}`);
+      throw error;
     }
   }
 

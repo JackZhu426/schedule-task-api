@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from "@nestjs/common";
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseFilters } from "@nestjs/common";
 import { ScheduleService } from "./schedule.service";
 import { Prisma } from "@prisma/client";
 import { CreateScheduleDTO } from "./dto/schedule.dto";

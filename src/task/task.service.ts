@@ -5,7 +5,6 @@ import {
   BadRequestException,
   NotFoundException
 } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import { Prisma } from "@prisma/client";
 import { PrismaService } from "src/prisma/prisma.service";
 import { CreateTaskDTO, UpdateTaskDTO } from "./dto/task.dto";
@@ -18,7 +17,6 @@ export class TaskService {
 
   constructor(
     private readonly prismaService: PrismaService,
-    private readonly configService: ConfigService,
     private readonly scheduleService: ScheduleService
   ) {}
 
@@ -28,6 +26,7 @@ export class TaskService {
 
     const { accountId, startTime, duration, type, scheduleId } = createTaskDto;
 
+    // Transform: the input DTO to Prisma data model
     const taskData: Prisma.TaskCreateInput = {
       accountId,
       startTime,
@@ -45,19 +44,7 @@ export class TaskService {
 
       console.log("error code:", error.code);
 
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        // P2002: Unique constraint failed
-        if (error.code === "P2002") {
-          throw new BadRequestException("A task with these details already exists");
-        } else if (error.code === "P2003" || error.code === "P2025") {
-          // P2003/P2025: Foreign key constraint failed
-          throw new BadRequestException(
-            `The specified schedule - scheduleId: ${createTaskDto.scheduleId} does not exist`
-          );
-        }
-      }
-
-      throw new InternalServerErrorException("Failed to create task");
+      throw error;
     }
   }
 
@@ -68,13 +55,9 @@ export class TaskService {
     }
     const { scheduleId, startTime: taskStartTime, duration: taskDuration } = task;
 
-    // Additional custom validations
-    // 1. input 'duration' must be positive
-    if (taskDuration <= 0) {
-      throw new BadRequestException("Duration must be positive");
-    }
+    // Additional custom validations: 👇🏻
 
-    // 2. 'startTime' must be in the future
+    // 1. 'startTime' must be in the future
     if (taskStartTime < new Date()) {
       throw new BadRequestException("Start time cannot be in the past");
     }
@@ -82,19 +65,19 @@ export class TaskService {
     try {
       const schedule = await this.scheduleService.findOne(scheduleId);
 
-      // 3. 'schedule' must exist - i.e. 'scheduleId' must be valid
+      // 2. 'schedule' must exist - i.e. 'scheduleId' must be valid
       if (!schedule) {
         throw new BadRequestException(`Schedule with ID - ${scheduleId} not found! Please input the right schedule ID`);
       }
 
       const { startTime: scheduleStartTime, endTime: scheduleEndTime } = schedule;
 
-      // 4. 'task' start time must be after 'schedule' start time
+      // 3. 'task' start time must be after 'schedule' start time
       if (taskStartTime < scheduleStartTime) {
         throw new BadRequestException("'Task' start time cannot be before 'Schedule' start time");
       }
 
-      // 5. 'task' end time must be before 'schedule' end time
+      // 4. 'task' end time must be before 'schedule' end time
       if (taskStartTime.getTime() + taskDuration > scheduleEndTime.getTime()) {
         throw new BadRequestException("'Task' end time cannot be after 'Schedule' end time");
       }
@@ -103,31 +86,38 @@ export class TaskService {
     }
   }
 
-  async findAll() {
+  async findAll(page: number, limit: number) {
     try {
-      // 1. count number of tasks
-      const taskCount = await this.prismaService.task.count();
-      console.log("task count:", taskCount);
-      // 2. get the pagination from the environment variables
-      const limit = +this.configService.get<number>("PAGINATION_SIZE", 100);
-      // 3. get the total number of pages
-      const totalPages = Math.ceil(taskCount / limit);
-      console.log("total pages:", totalPages);
-      // 4. get the tasks based on the pagination
-      const totalTasks = [];
-      for (let i = 0; i < totalPages; i++) {
-        const tasks = await this.prismaService.task.findMany({
-          skip: i * limit,
-          take: limit
-        });
+      // Ensure 'page' and 'limit' are positive integers
+      page = Math.max(1, page);
+      limit = Math.max(1, Math.min(100, limit));
 
-        totalTasks.push(...tasks);
-      }
+      const skip = (page - 1) * limit;
 
-      return totalTasks;
+      console.log("page:", page);
+
+      console.log("limit:", limit);
+
+      const [totalTaskCount, tasks] = await Promise.all([
+        this.prismaService.task.count(),
+        this.prismaService.task.findMany({ skip, take: limit, orderBy: { accountId: "asc" } })
+      ]);
+
+      const totalPages = Math.ceil(totalTaskCount / limit);
+
+      return {
+        tasks,
+        metaData: {
+          totalTaskCount,
+          totalPages,
+          currentPage: page,
+          pageSize: limit
+        }
+      };
     } catch (error) {
       this.logger.error("Failed to fetch tasks:", error.stack);
-      throw new InternalServerErrorException("An error occurred while fetching tasks");
+
+      throw error;
     }
   }
 
@@ -146,13 +136,7 @@ export class TaskService {
     } catch (error) {
       this.logger.error("Failed to fetch task:", error.stack);
 
-      // catch 'NotFoundException' and re-throw it
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
-
-      // throw 'InternalServerErrorException' for all other errors
-      throw new InternalServerErrorException(`An error occurred while fetching task with ID - ${id}`);
+      throw error;
     }
   }
 
@@ -179,14 +163,7 @@ export class TaskService {
 
       console.log("error code:", error.code);
 
-      if (error.code === "P2003" || error.code === "P2025") {
-        // P2003/P2025: Foreign key constraint failed
-        throw new BadRequestException(
-          `The specified schedule - scheduleId: ${updateTaskDto.scheduleId} does not exist`
-        );
-      }
-
-      throw new InternalServerErrorException("Failed to update task");
+      throw error;
     }
   }
 

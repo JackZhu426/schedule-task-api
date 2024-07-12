@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  DefaultValuePipe,
+  ParseIntPipe
+} from "@nestjs/common";
 import { TaskService } from "./task.service";
 import { CreateTaskDTO, UpdateTaskDTO } from "./dto/task.dto";
 
@@ -7,27 +18,30 @@ export class TaskController {
   constructor(private readonly taskService: TaskService) {}
 
   @Post()
-  create(@Body() createTaskDto: CreateTaskDTO) {
-    return this.taskService.create(createTaskDto);
+  async create(@Body() createTaskDto: CreateTaskDTO) {
+    return await this.taskService.create(createTaskDto);
   }
 
   @Get()
-  findAll() {
-    return this.taskService.findAll();
+  async findAll(
+    @Query("page", new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query("limit", new DefaultValuePipe(10), ParseIntPipe) limit: number
+  ) {
+    return await this.taskService.findAll(page, limit);
   }
 
   @Get(":id")
-  findOne(@Param("id") id: string) {
-    return this.taskService.findOne(id);
+  async findOne(@Param("id") id: string) {
+    return await this.taskService.findOne(id);
   }
 
   @Patch(":id")
-  update(@Param("id") id: string, @Body() updateTaskDto: UpdateTaskDTO) {
-    return this.taskService.update(id, updateTaskDto);
+  async update(@Param("id") id: string, @Body() updateTaskDto: UpdateTaskDTO) {
+    return await this.taskService.update(id, updateTaskDto);
   }
 
   @Delete(":id")
-  remove(@Param("id") id: string) {
-    return this.taskService.remove(id);
+  async remove(@Param("id") id: string) {
+    return await this.taskService.remove(id);
   }
 }

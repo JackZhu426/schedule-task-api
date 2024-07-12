@@ -1,5 +1,5 @@
 import { Type } from "class-transformer";
-import { IsDate, IsEnum, IsInt, IsNotEmpty, IsOptional, IsUUID } from "class-validator";
+import { IsDate, IsEnum, IsInt, IsNotEmpty, IsOptional, IsPositive, IsUUID } from "class-validator";
 import { TaskType } from "@prisma/client";
 
 export class CreateTaskDTO {
@@ -18,6 +18,7 @@ export class CreateTaskDTO {
 
   @IsInt()
   @IsNotEmpty()
+  @IsPositive()
   duration: number;
 
   @IsEnum(TaskType)
