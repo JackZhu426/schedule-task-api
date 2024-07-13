@@ -42,8 +42,6 @@ export class TaskService {
     } catch (error) {
       this.logger.error("Failed to create task:", error.stack);
 
-      console.log("error code:", error.code);
-
       throw error;
     }
   }

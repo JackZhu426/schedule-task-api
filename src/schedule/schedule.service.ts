@@ -27,6 +27,7 @@ export class ScheduleService {
     const { accountId, agentId, startTime, endTime, tasks } = createScheduleDto;
 
     try {
+      // Transform: the input DTO to Prisma data model
       const scheduleData: Prisma.ScheduleCreateInput = {
         accountId,
         agentId,
@@ -39,16 +40,7 @@ export class ScheduleService {
     } catch (error) {
       this.logger.error("Failed to create schedule:", error.stack);
 
-      console.log("error code:", error.code);
-
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        // P2002: Unique constraint failed
-        if (error.code === "P2002") {
-          throw new BadRequestException("A schedule with these details already exists");
-        }
-      }
-
-      throw new BadRequestException("Failed to create schedule");
+      throw error;
     }
   }
 
@@ -58,11 +50,14 @@ export class ScheduleService {
       throw new BadRequestException(errors);
     }
 
-    // Additional custom validations
+    // Additional custom validations: 👇🏻
+
+    // 1. 'startTime' must be in the future
     if (schedule.startTime < new Date()) {
       throw new BadRequestException("Start time cannot be in the past");
     }
 
+    // 2. 'endTime' must be after 'startTime'
     if (schedule.endTime < schedule.startTime) {
       throw new BadRequestException("End time cannot be before start time");
     }
