@@ -2,7 +2,6 @@ import { Injectable, Logger, BadRequestException, NotFoundException } from "@nes
 import { Prisma, TaskType } from "@prisma/client";
 import { PrismaService } from "src/prisma/prisma.service";
 import { CreateTaskDTO, UpdateTaskDTO } from "./dto/task.dto";
-import { isUUID } from "class-validator";
 import { ScheduleService } from "src/schedule/schedule.service";
 
 @Injectable()
@@ -101,9 +100,6 @@ export class TaskService {
   }
 
   async findOne(id: string) {
-    if (!isUUID(id)) {
-      throw new BadRequestException(`Invalid task ID - ${id}`);
-    }
     try {
       const task = await this.prismaService.task.findUnique({ where: { id } });
 
@@ -206,9 +202,6 @@ export class TaskService {
   }
 
   async remove(id: string) {
-    if (!isUUID(id)) {
-      throw new BadRequestException(`Invalid task ID - ${id}`);
-    }
     try {
       return await this.prismaService.task.delete({ where: { id } });
     } catch (error) {

@@ -38,7 +38,7 @@ export class UpdateTaskDTO {
   @IsInt()
   @IsOptional()
   @IsPositive()
-  duration?: number;
+  duration?: number; // assume it is 'seconds'
 
   @IsEnum(TaskType)
   @IsOptional()

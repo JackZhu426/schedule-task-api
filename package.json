@@ -36,6 +36,10 @@
     "ts-node": "^10.9.2"
   },
   "jest": {
+    "moduleDirectories": [
+      "<rootDir>/../",
+      "node_modules"
+    ],
     "moduleFileExtensions": [
       "js",
       "json",

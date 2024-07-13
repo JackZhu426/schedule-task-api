@@ -18,30 +18,30 @@ export class ScheduleController {
   constructor(private readonly scheduleService: ScheduleService) {}
 
   @Post()
-  create(@Body() createScheduleDto: CreateScheduleDTO) {
-    return this.scheduleService.create(createScheduleDto);
+  async create(@Body() createScheduleDto: CreateScheduleDTO) {
+    return await this.scheduleService.create(createScheduleDto);
   }
 
   @Get()
-  findAll(
+  async findAll(
     @Query("page", new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query("limit", new DefaultValuePipe(10), ParseIntPipe) limit: number
   ) {
-    return this.scheduleService.findAll(page, limit);
+    return await this.scheduleService.findAll(page, limit);
   }
 
   @Get(":id")
-  findOne(@Param("id") id: string) {
-    return this.scheduleService.findOne(id);
+  async findOne(@Param("id") id: string) {
+    return await this.scheduleService.findOne(id);
   }
 
   @Patch(":id")
-  update(@Param("id") id: string, @Body() updateScheduleDto: UpdateScheduleDTO) {
-    return this.scheduleService.update(id, updateScheduleDto);
+  async update(@Param("id") id: string, @Body() updateScheduleDto: UpdateScheduleDTO) {
+    return await this.scheduleService.update(id, updateScheduleDto);
   }
 
   @Delete(":id")
-  remove(@Param("id") id: string) {
-    return this.scheduleService.remove(id);
+  async remove(@Param("id") id: string) {
+    return await this.scheduleService.remove(id);
   }
 }

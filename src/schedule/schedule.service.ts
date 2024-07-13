@@ -1,15 +1,7 @@
-import {
-  Injectable,
-  Logger,
-  InternalServerErrorException,
-  BadRequestException,
-  NotFoundException
-} from "@nestjs/common";
+import { Injectable, Logger, BadRequestException, NotFoundException } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import { PrismaService } from "src/prisma/prisma.service";
-import { ConfigService } from "@nestjs/config";
 import { CreateScheduleDTO, UpdateScheduleDTO } from "./dto/schedule.dto";
-import { isUUID, validate } from "class-validator";
 
 @Injectable()
 export class ScheduleService {
@@ -96,10 +88,6 @@ export class ScheduleService {
   }
 
   async findOne(id: string) {
-    if (!isUUID(id)) {
-      throw new BadRequestException(`Invalid schedule ID - ${id}`);
-    }
-
     try {
       const schedule = await this.prismaService.schedule.findUnique({ where: { id }, include: { tasks: true } });
 
@@ -116,16 +104,47 @@ export class ScheduleService {
   }
 
   async update(id: string, updateScheduleDto: UpdateScheduleDTO) {
-    // TODO: validate the data before updating the schedule
+    // Validate: 1) global validation (ValidationPipe in main.ts), 2) custom validation
+    await this.validateUpdateSchedule(id, updateScheduleDto);
 
     // Transform: the input DTO to Prisma data model
+    const scheduleData = this.transformScheduleUpdateInput(updateScheduleDto);
 
-    const { accountId, agentId, endTime, startTime } = updateScheduleDto;
+    try {
+      return this.prismaService.schedule.update({
+        where: { id },
+        data: scheduleData
+      });
+    } catch (error) {
+      this.logger.error("Failed to update schedule:", error.stack);
 
-    return this.prismaService.schedule.update({
-      where: { id },
-      data: updateScheduleDto
-    });
+      throw error;
+    }
+  }
+
+  private transformScheduleUpdateInput(updateScheduleDto: UpdateScheduleDTO): Prisma.ScheduleUpdateInput {
+    const { accountId, agentId, startTime, endTime } = updateScheduleDto;
+
+    // Transform: the input DTO to Prisma data model
+    const scheduleData: Prisma.ScheduleUpdateInput = {};
+
+    if (accountId) {
+      scheduleData.accountId = accountId;
+    }
+
+    if (agentId) {
+      scheduleData.agentId = agentId;
+    }
+
+    if (startTime) {
+      scheduleData.startTime = startTime;
+    }
+
+    if (endTime) {
+      scheduleData.endTime = endTime;
+    }
+
+    return scheduleData;
   }
 
   private async validateUpdateSchedule(id: string, updateTaskDto: UpdateScheduleDTO) {
@@ -134,9 +153,27 @@ export class ScheduleService {
     if (!schedule) {
       throw new NotFoundException(`Schedule with ID - ${id} not found`);
     }
+
+    const { startTime: newScheduleStartTime, endTime: newScheduleEndTime } = updateTaskDto;
+
+    // 1. 'startTime' must be in the future
+    if (newScheduleStartTime && newScheduleStartTime < new Date()) {
+      throw new BadRequestException("Start time cannot be in the past");
+    }
+
+    // 2. 'endTime' must be after 'startTime'
+    if (newScheduleEndTime && newScheduleEndTime < newScheduleStartTime) {
+      throw new BadRequestException("End time cannot be before start time");
+    }
   }
 
   async remove(id: string) {
-    return this.prismaService.schedule.delete({ where: { id } });
+    try {
+      return await this.prismaService.schedule.delete({ where: { id } });
+    } catch (error) {
+      this.logger.error("Failed to delete schedule:", error.stack);
+
+      throw error;
+    }
   }
 }
