@@ -197,8 +197,16 @@ export class TaskService {
     }
   }
 
-  // TODO: Implement the 'remove' method
   async remove(id: string) {
-    return await this.prismaService.task.delete({ where: { id } });
+    if (!isUUID(id)) {
+      throw new BadRequestException(`Invalid task ID - ${id}`);
+    }
+    try {
+      return await this.prismaService.task.delete({ where: { id } });
+    } catch (error) {
+      this.logger.error("Failed to delete task:", error.stack);
+
+      throw error;
+    }
   }
 }
