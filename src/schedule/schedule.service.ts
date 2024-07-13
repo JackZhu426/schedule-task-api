@@ -33,7 +33,7 @@ export class ScheduleService {
     }
   }
 
-  private async validateCreateSchedule(schedule: CreateScheduleDTO): Promise<void> {
+  async validateCreateSchedule(schedule: CreateScheduleDTO): Promise<void> {
     // Additional custom validations: 👇🏻
 
     // 1. 'startTime' must be in the future
@@ -111,7 +111,7 @@ export class ScheduleService {
     const scheduleData = this.transformScheduleUpdateInput(updateScheduleDto);
 
     try {
-      return this.prismaService.schedule.update({
+      return await this.prismaService.schedule.update({
         where: { id },
         data: scheduleData
       });
@@ -122,7 +122,7 @@ export class ScheduleService {
     }
   }
 
-  private transformScheduleUpdateInput(updateScheduleDto: UpdateScheduleDTO): Prisma.ScheduleUpdateInput {
+  transformScheduleUpdateInput(updateScheduleDto: UpdateScheduleDTO): Prisma.ScheduleUpdateInput {
     const { accountId, agentId, startTime, endTime } = updateScheduleDto;
 
     // Transform: the input DTO to Prisma data model
@@ -147,7 +147,7 @@ export class ScheduleService {
     return scheduleData;
   }
 
-  private async validateUpdateSchedule(id: string, updateTaskDto: UpdateScheduleDTO) {
+  async validateUpdateSchedule(id: string, updateTaskDto: UpdateScheduleDTO) {
     const schedule = await this.findOne(id);
 
     if (!schedule) {
