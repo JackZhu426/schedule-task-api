@@ -62,27 +62,23 @@ export class TaskService {
       throw new BadRequestException("Start time cannot be in the past");
     }
 
-    try {
-      const schedule = await this.scheduleService.findOne(scheduleId);
+    const schedule = await this.scheduleService.findOne(scheduleId);
 
-      // 2. 'schedule' must exist - i.e. 'scheduleId' must be valid
-      if (!schedule) {
-        throw new BadRequestException(`Schedule with ID - ${scheduleId} not found! Please input the right schedule ID`);
-      }
+    // 2. 'schedule' must exist - i.e. 'scheduleId' must be valid
+    if (!schedule) {
+      throw new BadRequestException(`Schedule with ID - ${scheduleId} not found! Please input the right schedule ID`);
+    }
 
-      const { startTime: scheduleStartTime, endTime: scheduleEndTime } = schedule;
+    const { startTime: scheduleStartTime, endTime: scheduleEndTime } = schedule;
 
-      // 3. 'task' start time must be after 'schedule' start time
-      if (taskStartTime < scheduleStartTime) {
-        throw new BadRequestException("'Task' start time cannot be before 'Schedule' start time");
-      }
+    // 3. 'task' start time must be after 'schedule' start time
+    if (taskStartTime < scheduleStartTime) {
+      throw new BadRequestException("'Task' start time cannot be before 'Schedule' start time");
+    }
 
-      // 4. 'task' end time must be before 'schedule' end time
-      if (taskStartTime.getTime() + taskDuration > scheduleEndTime.getTime()) {
-        throw new BadRequestException("'Task' end time cannot be after 'Schedule' end time");
-      }
-    } catch (error) {
-      throw error;
+    // 4. 'task' end time must be before 'schedule' end time
+    if (taskStartTime.getTime() + taskDuration > scheduleEndTime.getTime()) {
+      throw new BadRequestException("'Task' end time cannot be after 'Schedule' end time");
     }
   }
 
