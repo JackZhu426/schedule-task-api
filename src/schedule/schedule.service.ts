@@ -128,6 +128,14 @@ export class ScheduleService {
     });
   }
 
+  private async validateUpdateSchedule(id: string, updateTaskDto: UpdateScheduleDTO) {
+    const schedule = await this.findOne(id);
+
+    if (!schedule) {
+      throw new NotFoundException(`Schedule with ID - ${id} not found`);
+    }
+  }
+
   async remove(id: string) {
     return this.prismaService.schedule.delete({ where: { id } });
   }

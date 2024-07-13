@@ -4,21 +4,17 @@ import { TaskType } from "@prisma/client";
 
 export class CreateScheduleDTO {
   @IsInt()
-  @IsNotEmpty()
   accountId: number;
 
   @IsInt()
-  @IsNotEmpty()
   agentId: number;
 
   @IsDate()
   @Type(() => Date)
-  @IsNotEmpty()
   startTime: Date;
 
   @IsDate()
   @Type(() => Date)
-  @IsNotEmpty()
   endTime: Date;
 
   @IsOptional()
@@ -30,43 +26,35 @@ export class CreateScheduleDTO {
 
 class TaskInScheduleDTO {
   @IsInt()
-  @IsNotEmpty()
   accountId: number;
 
   @IsDate()
   @Type(() => Date)
-  @IsNotEmpty()
   startTime: Date;
 
   @IsInt()
-  @IsNotEmpty()
   duration: number;
 
   @IsEnum(TaskType)
-  @IsNotEmpty()
   type: TaskType;
 }
 
 export class UpdateScheduleDTO {
   @IsInt()
-  @IsNotEmpty()
   @IsOptional()
   accountId?: number;
 
   @IsInt()
-  @IsNotEmpty()
   @IsOptional()
   agentId?: number;
 
   @IsDate()
   @Type(() => Date)
-  @IsNotEmpty()
   @IsOptional()
   startTime?: Date;
 
   @IsDate()
   @Type(() => Date)
-  @IsNotEmpty()
   @IsOptional()
   endTime?: Date;
 }
