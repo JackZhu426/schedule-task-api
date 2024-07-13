@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseFilters } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  DefaultValuePipe,
+  ParseIntPipe
+} from "@nestjs/common";
 import { ScheduleService } from "./schedule.service";
 import { Prisma } from "@prisma/client";
 import { CreateScheduleDTO } from "./dto/schedule.dto";
@@ -13,8 +24,11 @@ export class ScheduleController {
   }
 
   @Get()
-  findAll() {
-    return this.scheduleService.findAll();
+  findAll(
+    @Query("page", new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query("limit", new DefaultValuePipe(10), ParseIntPipe) limit: number
+  ) {
+    return this.scheduleService.findAll(page, limit);
   }
 
   @Get(":id")

@@ -68,30 +68,43 @@ export class ScheduleService {
     }
   }
 
-  async findAll() {
+  async findAll(page: number, limit: number) {
     try {
-      // 1. count number of tasks
-      const scheduleCount = await this.prismaService.schedule.count();
-      // 2. get the pagination from the environment variables
-      const limit = +this.configService.get<number>("PAGINATION_SIZE", 100);
-      // 3. get the total number of pages
-      const totalPages = Math.ceil(scheduleCount / limit);
-      // 4. get the tasks based on the pagination
-      const totalSchedules = [];
-      for (let i = 0; i < totalPages; i++) {
-        const schedules = await this.prismaService.schedule.findMany({
-          skip: i * limit,
+      // Ensure 'page' and 'limit' are positive integers
+      page = Math.max(1, page);
+      limit = Math.max(1, Math.min(100, limit));
+
+      const skip = (page - 1) * limit;
+
+      console.log("page:", page);
+
+      console.log("limit:", limit);
+
+      const [totalScheduleCount, schedules] = await Promise.all([
+        this.prismaService.schedule.count(),
+        this.prismaService.schedule.findMany({
+          skip,
           take: limit,
-          orderBy: { id: "asc" }
-        });
+          orderBy: { accountId: "asc" },
+          include: { tasks: true }
+        })
+      ]);
 
-        totalSchedules.push(...schedules);
-      }
+      const totalPages = Math.ceil(totalScheduleCount / limit);
 
-      return totalSchedules;
+      return {
+        schedules,
+        metaData: {
+          totalScheduleCount,
+          totalPages,
+          currentPage: page,
+          pageSize: limit
+        }
+      };
     } catch (error) {
       this.logger.error("Failed to fetch schedules:", error.stack);
-      throw new InternalServerErrorException("An error occurred while fetching schedules");
+
+      throw error;
     }
   }
 
