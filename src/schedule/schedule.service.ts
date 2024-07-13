@@ -8,17 +8,14 @@ import {
 import { Prisma } from "@prisma/client";
 import { PrismaService } from "src/prisma/prisma.service";
 import { ConfigService } from "@nestjs/config";
-import { CreateScheduleDTO } from "./dto/schedule.dto";
+import { CreateScheduleDTO, UpdateScheduleDTO } from "./dto/schedule.dto";
 import { isUUID, validate } from "class-validator";
 
 @Injectable()
 export class ScheduleService {
   private readonly logger = new Logger(ScheduleService.name);
 
-  constructor(
-    private readonly prismaService: PrismaService,
-    private readonly configService: ConfigService
-  ) {}
+  constructor(private readonly prismaService: PrismaService) {}
 
   async create(createScheduleDto: CreateScheduleDTO) {
     // Validate: 1) global validation (ValidationPipe in main.ts), 2) custom validation
@@ -45,11 +42,6 @@ export class ScheduleService {
   }
 
   private async validateCreateSchedule(schedule: CreateScheduleDTO): Promise<void> {
-    const errors = await validate(schedule);
-    if (errors.length > 0) {
-      throw new BadRequestException(errors);
-    }
-
     // Additional custom validations: 👇🏻
 
     // 1. 'startTime' must be in the future
@@ -123,8 +115,12 @@ export class ScheduleService {
     }
   }
 
-  async update(id: string, updateScheduleDto: Prisma.ScheduleUpdateInput) {
+  async update(id: string, updateScheduleDto: UpdateScheduleDTO) {
     // TODO: validate the data before updating the schedule
+
+    // Transform: the input DTO to Prisma data model
+
+    const { accountId, agentId, endTime, startTime } = updateScheduleDto;
 
     return this.prismaService.schedule.update({
       where: { id },

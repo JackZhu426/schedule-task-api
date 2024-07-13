@@ -11,8 +11,7 @@ import {
   ParseIntPipe
 } from "@nestjs/common";
 import { ScheduleService } from "./schedule.service";
-import { Prisma } from "@prisma/client";
-import { CreateScheduleDTO } from "./dto/schedule.dto";
+import { CreateScheduleDTO, UpdateScheduleDTO } from "./dto/schedule.dto";
 
 @Controller("schedule")
 export class ScheduleController {
@@ -37,7 +36,7 @@ export class ScheduleController {
   }
 
   @Patch(":id")
-  update(@Param("id") id: string, @Body() updateScheduleDto: Prisma.ScheduleUpdateInput) {
+  update(@Param("id") id: string, @Body() updateScheduleDto: UpdateScheduleDTO) {
     return this.scheduleService.update(id, updateScheduleDto);
   }
 

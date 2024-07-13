@@ -1,14 +1,8 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-  BadRequestException,
-  NotFoundException
-} from "@nestjs/common";
+import { Injectable, Logger, BadRequestException, NotFoundException } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import { PrismaService } from "src/prisma/prisma.service";
 import { CreateTaskDTO, UpdateTaskDTO } from "./dto/task.dto";
-import { isUUID, validate } from "class-validator";
+import { isUUID } from "class-validator";
 import { ScheduleService } from "src/schedule/schedule.service";
 
 @Injectable()
@@ -47,10 +41,6 @@ export class TaskService {
   }
 
   private async validateCreateTask(task: CreateTaskDTO): Promise<void> {
-    const errors = await validate(task);
-    if (errors.length > 0) {
-      throw new BadRequestException(errors);
-    }
     const { scheduleId, startTime: taskStartTime, duration: taskDuration } = task;
 
     // Additional custom validations: 👇🏻
@@ -136,20 +126,10 @@ export class TaskService {
 
   async update(id: string, updateTaskDto: UpdateTaskDTO) {
     // Validate: 1) global validation (ValidationPipe in main.ts), 2) custom validation
-    await this.validateUpdateTask(updateTaskDto);
-
-    const { accountId, startTime, duration, type, scheduleId } = updateTaskDto;
+    await this.validateUpdateTask(id, updateTaskDto);
 
     // Transform: the input DTO to Prisma data model
-    const taskData: Prisma.TaskCreateInput = {
-      accountId,
-      startTime,
-      duration,
-      type,
-      schedule: {
-        connect: { id: scheduleId }
-      }
-    };
+    const taskData = this.transformTaskUpdateInput(updateTaskDto);
 
     try {
       return await this.prismaService.task.update({ where: { id }, data: taskData });
@@ -160,38 +140,92 @@ export class TaskService {
     }
   }
 
-  private async validateUpdateTask(task: UpdateTaskDTO): Promise<void> {
-    const errors = await validate(task);
+  private transformTaskUpdateInput(updateTaskDto: UpdateTaskDTO): Prisma.TaskUpdateInput {
+    const { accountId, startTime, duration, type, scheduleId } = updateTaskDto;
 
-    if (errors.length > 0) {
-      throw new BadRequestException(errors);
+    // Transform: the input DTO to Prisma data model
+    const taskData: Prisma.TaskUpdateInput = {};
+
+    if (accountId) {
+      taskData.accountId = accountId;
     }
-    const { scheduleId, startTime: taskStartTime, duration: taskDuration } = task;
+
+    if (startTime) {
+      taskData.startTime = startTime;
+    }
+
+    if (duration) {
+      taskData.duration = duration;
+    }
+
+    if (type) {
+      taskData.type = type;
+    }
+
+    if (scheduleId) {
+      taskData.schedule = {
+        connect: { id: scheduleId }
+      };
+    }
+
+    return taskData;
+  }
+
+  private async validateUpdateTask(id: string, updateTaskDto: UpdateTaskDTO): Promise<void> {
+    const task = await this.findOne(id);
+
+    if (!task) {
+      throw new NotFoundException(`Task with ID - ${id} not found`);
+    }
+
+    const { scheduleId: newScheduleId, startTime: taskStartTime, duration: taskDuration } = updateTaskDto;
 
     // Additional custom validations: 👇🏻
 
     // 1. 'startTime' must be in the future
-    if (taskStartTime < new Date()) {
+    if (taskStartTime && taskStartTime < new Date()) {
       throw new BadRequestException("Start time cannot be in the past");
     }
 
-    const schedule = await this.scheduleService.findOne(scheduleId);
+    if (newScheduleId) {
+      const schedule = await this.scheduleService.findOne(newScheduleId);
 
-    // 2. 'schedule' must exist - i.e. 'scheduleId' must be valid
-    if (!schedule) {
-      throw new BadRequestException(`Schedule with ID - ${scheduleId} not found! Please input the right schedule ID`);
-    }
+      // 2. 'schedule' must exist - i.e. 'scheduleId' must be valid
+      if (!schedule) {
+        throw new BadRequestException(
+          `Schedule with ID - ${newScheduleId} not found! Please input the right schedule ID`
+        );
+      }
 
-    const { startTime: scheduleStartTime, endTime: scheduleEndTime } = schedule;
+      // 2.1 change to the NEW schedule
+      const { startTime: scheduleStartTime, endTime: scheduleEndTime } = schedule;
 
-    // 3. 'task' start time must be after 'schedule' start time
-    if (taskStartTime < scheduleStartTime) {
-      throw new BadRequestException("'Task' start time cannot be before 'Schedule' start time");
-    }
+      // 2.2 'task' start time must be after the NEW 'schedule' start time
+      if (taskStartTime < scheduleStartTime) {
+        throw new BadRequestException("'Task' start time cannot be before NEW 'Schedule' start time");
+      }
 
-    // 4. 'task' end time must be before 'schedule' end time
-    if (taskStartTime.getTime() + taskDuration > scheduleEndTime.getTime()) {
-      throw new BadRequestException("'Task' end time cannot be after 'Schedule' end time");
+      // 2.3 'task' end time must be before the NEW 'schedule' end time
+      if (taskStartTime.getTime() + taskDuration > scheduleEndTime.getTime()) {
+        throw new BadRequestException("'Task' end time cannot be after NEW 'Schedule' end time");
+      }
+    } else {
+      // 3. OLD schedule id
+
+      // 3.1 get the OLD schedule
+      const { scheduleId: oldScheduleId } = task;
+      const { startTime: scheduleStartTime, endTime: scheduleEndTime } =
+        await this.scheduleService.findOne(oldScheduleId);
+
+      // 3.2 'task' start time must be after the OLD 'schedule' start time
+      if (taskStartTime < scheduleStartTime) {
+        throw new BadRequestException("'Task' start time cannot be before OLD 'Schedule' start time");
+      }
+
+      // 3.3 'task' end time must be before the OLD 'schedule' end time
+      if (taskStartTime.getTime() + taskDuration > scheduleEndTime.getTime()) {
+        throw new BadRequestException("'Task' end time cannot be after OLD 'Schedule' end time");
+      }
     }
   }
 

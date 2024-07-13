@@ -46,3 +46,27 @@ class TaskInScheduleDTO {
   @IsNotEmpty()
   type: TaskType;
 }
+
+export class UpdateScheduleDTO {
+  @IsInt()
+  @IsNotEmpty()
+  @IsOptional()
+  accountId?: number;
+
+  @IsInt()
+  @IsNotEmpty()
+  @IsOptional()
+  agentId?: number;
+
+  @IsDate()
+  @Type(() => Date)
+  @IsNotEmpty()
+  @IsOptional()
+  startTime?: Date;
+
+  @IsDate()
+  @Type(() => Date)
+  @IsNotEmpty()
+  @IsOptional()
+  endTime?: Date;
+}
