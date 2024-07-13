@@ -1,5 +1,5 @@
 import { Injectable, Logger, BadRequestException, NotFoundException } from "@nestjs/common";
-import { Prisma } from "@prisma/client";
+import { Prisma, TaskType } from "@prisma/client";
 import { PrismaService } from "src/prisma/prisma.service";
 import { CreateTaskDTO, UpdateTaskDTO } from "./dto/task.dto";
 import { isUUID } from "class-validator";
@@ -41,7 +41,7 @@ export class TaskService {
   }
 
   private async validateCreateTask(task: CreateTaskDTO): Promise<void> {
-    const { scheduleId, startTime: taskStartTime } = task;
+    const { scheduleId, startTime: taskStartTime, duration: taskDuration } = task;
 
     // Additional custom validations: 👇🏻
 
@@ -55,6 +55,13 @@ export class TaskService {
     // 2. 'schedule' must exist - i.e. 'scheduleId' must be valid
     if (!schedule) {
       throw new BadRequestException(`Schedule with ID - ${scheduleId} not found! Please input the right schedule ID`);
+    }
+
+    const { endTime: scheduleEndTime } = schedule;
+
+    // 3. 'task' end time must be before 'schedule' end time
+    if (taskStartTime.getTime() + taskDuration * 1000 > scheduleEndTime.getTime()) {
+      throw new BadRequestException("'Task' end time cannot be after 'Schedule' end time");
     }
   }
 
@@ -166,7 +173,7 @@ export class TaskService {
       throw new NotFoundException(`Task with ID - ${id} not found`);
     }
 
-    const { scheduleId: newScheduleId, startTime: newTaskStartTime } = updateTaskDto;
+    const { scheduleId: newScheduleId, startTime: newTaskStartTime, duration: newTaskDuration } = updateTaskDto;
 
     // Additional custom validations: 👇🏻
 
@@ -175,15 +182,26 @@ export class TaskService {
       throw new BadRequestException("Start time cannot be in the past");
     }
 
-    if (newScheduleId) {
-      const schedule = await this.scheduleService.findOne(newScheduleId);
+    const currentScheduleId = newScheduleId || task.scheduleId;
 
-      // 2. 'schedule' must exist - i.e. 'scheduleId' must be valid
-      if (!schedule) {
-        throw new BadRequestException(
-          `Schedule with ID - ${newScheduleId} not found! Please input the right schedule ID`
-        );
-      }
+    const schedule = await this.scheduleService.findOne(currentScheduleId);
+
+    // 2. 'schedule' must exist - i.e. 'scheduleId' must be valid
+    if (!schedule) {
+      throw new BadRequestException(
+        `Schedule with ID - ${newScheduleId} not found! Please input the right schedule ID`
+      );
+    }
+
+    const { endTime: scheduleEndTime } = schedule;
+
+    // 3. 'task' end time must be before 'schedule' end time
+    const startTime = newTaskStartTime || task.startTime;
+    const duration = newTaskDuration || task.duration;
+    const taskEndTime = new Date(startTime.getTime() + duration * 1000);
+
+    if (taskEndTime > scheduleEndTime) {
+      throw new BadRequestException("'Task' end time cannot be after 'Schedule' end time");
     }
   }
 

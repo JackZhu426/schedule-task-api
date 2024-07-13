@@ -15,7 +15,7 @@ export class CreateTaskDTO {
 
   @IsInt()
   @IsPositive()
-  duration: number;
+  duration: number; // assume it is 'seconds'
 
   @IsEnum(TaskType)
   type: TaskType;
