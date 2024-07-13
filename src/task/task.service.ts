@@ -141,11 +141,12 @@ export class TaskService {
   }
 
   async update(id: string, updateTaskDto: UpdateTaskDTO) {
-    // TODO: Validate: 1) global validation (ValidationPipe in main.ts), 2) custom validation
+    // Validate: 1) global validation (ValidationPipe in main.ts), 2) custom validation
     await this.validateUpdateTask(updateTaskDto);
 
     const { accountId, startTime, duration, type, scheduleId } = updateTaskDto;
 
+    // Transform: the input DTO to Prisma data model
     const taskData: Prisma.TaskCreateInput = {
       accountId,
       startTime,
@@ -159,9 +160,7 @@ export class TaskService {
     try {
       return await this.prismaService.task.update({ where: { id }, data: taskData });
     } catch (error) {
-      this.logger.error("Failed to create task:", error.stack);
-
-      console.log("error code:", error.code);
+      this.logger.error("Failed to update task:", error.stack);
 
       throw error;
     }
@@ -175,38 +174,30 @@ export class TaskService {
     }
     const { scheduleId, startTime: taskStartTime, duration: taskDuration } = task;
 
-    // Additional custom validations
-    // 1. input 'duration' must be positive
-    if (taskDuration <= 0) {
-      throw new BadRequestException("Duration must be positive");
-    }
+    // Additional custom validations: 👇🏻
 
-    // 2. 'startTime' must be in the future
+    // 1. 'startTime' must be in the future
     if (taskStartTime < new Date()) {
       throw new BadRequestException("Start time cannot be in the past");
     }
 
-    try {
-      const schedule = await this.scheduleService.findOne(scheduleId);
+    const schedule = await this.scheduleService.findOne(scheduleId);
 
-      // 3. 'schedule' must exist - i.e. 'scheduleId' must be valid
-      if (!schedule) {
-        throw new BadRequestException(`Schedule with ID - ${scheduleId} not found! Please input the right schedule ID`);
-      }
+    // 2. 'schedule' must exist - i.e. 'scheduleId' must be valid
+    if (!schedule) {
+      throw new BadRequestException(`Schedule with ID - ${scheduleId} not found! Please input the right schedule ID`);
+    }
 
-      const { startTime: scheduleStartTime, endTime: scheduleEndTime } = schedule;
+    const { startTime: scheduleStartTime, endTime: scheduleEndTime } = schedule;
 
-      // 4. 'task' start time must be after 'schedule' start time
-      if (taskStartTime < scheduleStartTime) {
-        throw new BadRequestException("'Task' start time cannot be before 'Schedule' start time");
-      }
+    // 3. 'task' start time must be after 'schedule' start time
+    if (taskStartTime < scheduleStartTime) {
+      throw new BadRequestException("'Task' start time cannot be before 'Schedule' start time");
+    }
 
-      // 5. 'task' end time must be before 'schedule' end time
-      if (taskStartTime.getTime() + taskDuration > scheduleEndTime.getTime()) {
-        throw new BadRequestException("'Task' end time cannot be after 'Schedule' end time");
-      }
-    } catch (error) {
-      throw error;
+    // 4. 'task' end time must be before 'schedule' end time
+    if (taskStartTime.getTime() + taskDuration > scheduleEndTime.getTime()) {
+      throw new BadRequestException("'Task' end time cannot be after 'Schedule' end time");
     }
   }
 

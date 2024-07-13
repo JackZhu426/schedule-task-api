@@ -1,6 +1,6 @@
-import { Transform, Type } from "class-transformer";
+import { Type } from "class-transformer";
 import { IsArray, IsDate, IsEnum, IsInt, IsNotEmpty, IsOptional, ValidateNested } from "class-validator";
-import { Prisma, TaskType } from "@prisma/client";
+import { TaskType } from "@prisma/client";
 
 export class CreateScheduleDTO {
   @IsInt()
@@ -24,7 +24,6 @@ export class CreateScheduleDTO {
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
-  @Transform((value) => value || [])
   @Type(() => TaskInScheduleDTO)
   tasks?: TaskInScheduleDTO[];
 }

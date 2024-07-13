@@ -114,13 +114,13 @@ export class ScheduleService {
     }
 
     try {
-      const res = await this.prismaService.schedule.findUnique({ where: { id }, include: { tasks: true } });
+      const schedule = await this.prismaService.schedule.findUnique({ where: { id }, include: { tasks: true } });
 
-      if (!res) {
+      if (!schedule) {
         throw new NotFoundException(`Schedule with ID - ${id} not found`);
       }
 
-      return res;
+      return schedule;
     } catch (error) {
       this.logger.error("Failed to fetch schedule:", error.stack);
 

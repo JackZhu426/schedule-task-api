@@ -46,6 +46,7 @@ export class UpdateTaskDTO {
   @IsInt()
   @IsNotEmpty()
   @IsOptional()
+  @IsPositive()
   duration?: number;
 
   @IsEnum(TaskType)
