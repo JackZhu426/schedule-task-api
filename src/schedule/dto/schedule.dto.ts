@@ -1,5 +1,5 @@
 import { Type } from "class-transformer";
-import { IsArray, IsDate, IsEnum, IsInt, IsNotEmpty, IsOptional, ValidateNested } from "class-validator";
+import { IsArray, IsDate, IsEnum, IsInt, IsOptional, ValidateNested } from "class-validator";
 import { TaskType } from "@prisma/client";
 import { ApiProperty } from "@nestjs/swagger";
 

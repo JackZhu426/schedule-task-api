@@ -72,10 +72,6 @@ export class TaskService {
 
       const skip = (page - 1) * limit;
 
-      console.log("page:", page);
-
-      console.log("limit:", limit);
-
       const [totalTaskCount, tasks] = await Promise.all([
         this.prismaService.task.count(),
         this.prismaService.task.findMany({ skip, take: limit, orderBy: { accountId: "asc" } })

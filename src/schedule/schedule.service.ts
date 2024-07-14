@@ -55,10 +55,6 @@ export class ScheduleService {
 
       const skip = (page - 1) * limit;
 
-      console.log("page:", page);
-
-      console.log("limit:", limit);
-
       const [totalScheduleCount, schedules] = await Promise.all([
         this.prismaService.schedule.count(),
         this.prismaService.schedule.findMany({
