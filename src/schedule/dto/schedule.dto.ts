@@ -9,17 +9,17 @@ export class CreateScheduleDTO {
   accountId: number;
 
   @IsInt()
-  @ApiProperty()
+  @ApiProperty({ required: true, default: 456 })
   agentId: number;
 
   @IsDate()
   @Type(() => Date)
-  @ApiProperty({ default: new Date("2025-01-01") })
+  @ApiProperty({ required: true, default: new Date("2026-01-01") })
   startTime: Date;
 
   @IsDate()
   @Type(() => Date)
-  @ApiProperty({ default: new Date() })
+  @ApiProperty({ required: true, default: new Date("2026-03-01") })
   endTime: Date;
 
   @IsOptional()
@@ -48,19 +48,23 @@ class TaskInScheduleDTO {
 export class UpdateScheduleDTO {
   @IsInt()
   @IsOptional()
+  @ApiProperty({ default: 223 })
   accountId?: number;
 
   @IsInt()
   @IsOptional()
+  @ApiProperty({ default: 556 })
   agentId?: number;
 
   @IsDate()
   @Type(() => Date)
   @IsOptional()
+  @ApiProperty({ default: new Date("2026-01-02") })
   startTime?: Date;
 
   @IsDate()
   @Type(() => Date)
   @IsOptional()
+  @ApiProperty({ default: new Date("2026-03-02") })
   endTime?: Date;
 }

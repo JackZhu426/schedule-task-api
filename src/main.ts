@@ -10,7 +10,7 @@ async function bootstrap() {
   app.useGlobalFilters(new PrismaClientExceptionFilter());
   const config = new DocumentBuilder()
     .setTitle("Schedule Task API")
-    .setDescription("description")
+    .setDescription("Schedule Task CRUD API")
     .setVersion("1.0")
     .build();
 
