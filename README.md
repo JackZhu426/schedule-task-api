@@ -112,6 +112,8 @@ Base URL: `http://localhost:3000`
 }
 ```
 
+<p align="right">(<a href="#top">back to top</a>)</p>
+
 ##### POST /task
 > `startTime` should be after the current time and, `startTime` + `duration` (i.e. task end time) should be before schedule's `endTime`
 > 
@@ -157,6 +159,7 @@ Base URL: `http://localhost:3000`
     "type": "WORK"
 }
 ```
+<p align="right">(<a href="#top">back to top</a>)</p>
 
 #### Swagger
 > ✨ Also can be used for UAT
