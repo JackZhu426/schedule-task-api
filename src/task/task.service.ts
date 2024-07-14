@@ -1,5 +1,5 @@
 import { Injectable, Logger, BadRequestException, NotFoundException } from "@nestjs/common";
-import { Prisma, TaskType } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { PrismaService } from "src/prisma/prisma.service";
 import { CreateTaskDTO, UpdateTaskDTO } from "./dto/task.dto";
 import { ScheduleService } from "src/schedule/schedule.service";
@@ -39,7 +39,7 @@ export class TaskService {
     }
   }
 
-  private async validateCreateTask(task: CreateTaskDTO): Promise<void> {
+  async validateCreateTask(task: CreateTaskDTO): Promise<void> {
     const { scheduleId, startTime: taskStartTime, duration: taskDuration } = task;
 
     // Additional custom validations: 👇🏻
@@ -53,7 +53,7 @@ export class TaskService {
 
     // 2. 'schedule' must exist - i.e. 'scheduleId' must be valid
     if (!schedule) {
-      throw new BadRequestException(`Schedule with ID - ${scheduleId} not found! Please input the right schedule ID`);
+      throw new BadRequestException(`Schedule with ID - ${scheduleId} not found`);
     }
 
     const { endTime: scheduleEndTime } = schedule;
@@ -131,7 +131,7 @@ export class TaskService {
     }
   }
 
-  private transformTaskUpdateInput(updateTaskDto: UpdateTaskDTO): Prisma.TaskUpdateInput {
+  transformTaskUpdateInput(updateTaskDto: UpdateTaskDTO): Prisma.TaskUpdateInput {
     const { accountId, startTime, duration, type, scheduleId } = updateTaskDto;
 
     // Transform: the input DTO to Prisma data model
@@ -162,7 +162,7 @@ export class TaskService {
     return taskData;
   }
 
-  private async validateUpdateTask(id: string, updateTaskDto: UpdateTaskDTO): Promise<void> {
+  async validateUpdateTask(id: string, updateTaskDto: UpdateTaskDTO): Promise<void> {
     const task = await this.findOne(id);
 
     if (!task) {

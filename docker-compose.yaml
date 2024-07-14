@@ -1,0 +1,24 @@
+version: '3.5'
+services:
+  server:
+    image: node:20
+    volumes:
+      - .:/app
+      - /app/node_modules
+    ports:
+      - 3000:3000
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@postgres:5432/schedule-tasks-test
+    depends_on:
+      - postgres
+    container_name: jack-server
+    command: sh -c "cd /app && npm i && npx prisma migrate reset --force && npm start"
+
+  postgres:
+    image: postgres:16
+    ports:
+      - 5432:5432
+    environment:
+    - POSTGRES_USER=postgres
+    - POSTGRES_PASSWORD=postgres
+    container_name: jack-postgres
