@@ -101,7 +101,6 @@ Base URL: `http://localhost:3000`
 |  agentId  |       Int       |                                               566                                                |    NO    |
 | startTime |  String (Date)  |                                      "2025-07-15T00:00:00Z"                                      |    NO    |
 |  endTime  |  String (Date)  |                                      "2025-07-17T00:00:00Z"                                      |    NO    |
-|   tasks   | Array of Object | [{"accountId": 2025071404, "startTime": "2025-07-14T23:59:00Z","duration": 1000,"type": "WORK"}] |    NO    |
 
 ```json
 {
