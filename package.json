@@ -61,7 +61,9 @@
       "!**/*.dto.ts",
       "!**/*.entity.ts",
       "!**/node_modules/**",
-      "!**/*.filter.ts"
+      "!**/*.filter.ts",
+      "!**/app.*.ts",
+      "!**/prisma.*.ts"
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
