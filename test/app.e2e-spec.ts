@@ -56,7 +56,12 @@ describe("AppController (e2e)", () => {
 
         expect(body.schedules).toHaveLength(10);
 
-        // TODO: check meta data
+        expect(body.metaData).toEqual({
+          totalScheduleCount: 11,
+          totalPages: 2,
+          currentPage: 1,
+          pageSize: 10
+        });
       });
 
       it("should return correct schedules (page is 2)", async () => {
@@ -67,6 +72,16 @@ describe("AppController (e2e)", () => {
         expect(body.schedules).toEqual(expect.arrayContaining([scheduleSchema]));
 
         expect(body.schedules).toHaveLength(1);
+      });
+    });
+
+    describe("GET /:id", () => {
+      let schedule: Schedule;
+      beforeEach(async () => {
+        await prisma.schedule.deleteMany();
+        await prisma.schedule.create({
+          data: baseSchema
+        });
       });
     });
 
