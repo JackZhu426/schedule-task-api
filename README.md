@@ -72,5 +72,6 @@ npm start
 ## Testing
 
 ### Test Coverage
+<img width="731" alt="unit tests" src="https://github.com/user-attachments/assets/41452343-c02a-44c9-b9c7-50543dbfafce">
 
 <p align="right">(<a href="#top">back to top</a>)</p>
