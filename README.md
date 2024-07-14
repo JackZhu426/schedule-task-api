@@ -45,6 +45,11 @@ Swagger API URL: `https://localhost:3000/api`
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
+#### Swagger
+> ✨ Also can be used for UAT
+<img width="1745" alt="image" src="https://github.com/user-attachments/assets/f2d09a35-589c-43ec-816b-6c04775a9ec0">
+
+
 ### Unit/Integration test check
 
 After Docker is up and running, by using the commands on the CLI at project dir:
@@ -61,17 +66,30 @@ npm run test
 npm run test:e2e
 ```
 
-3. Run the project locally
-
-```sh
-npm start
-```
-
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 ## Testing
 
-### Test Coverage
+### Unit Test Coverage
 <img width="731" alt="unit tests" src="https://github.com/user-attachments/assets/41452343-c02a-44c9-b9c7-50543dbfafce">
+
+### Integration Test
+<img width="541" alt="integration test" src="https://github.com/user-attachments/assets/c65d233b-b694-45f1-93ab-beca34113ce9">
+
+### UAT
+#### Add a schedule
+<img width="784" alt="image" src="https://github.com/user-attachments/assets/bfb79ce2-19c5-452d-81e2-fd782b639a06">
+
+#### Add a schedule - failed
+<img width="732" alt="image" src="https://github.com/user-attachments/assets/c20c6b0e-a26f-40df-b112-38b8c9dbce9e">
+
+<img width="743" alt="image" src="https://github.com/user-attachments/assets/f3e73049-d9d9-4600-8e1a-2faa044e3194">
+
+#### Get all schedules
+<img width="759" alt="image" src="https://github.com/user-attachments/assets/df9cb76a-da02-4c98-ad07-d303e7357e65">
+
+#### Get one schedule
+<img width="729" alt="image" src="https://github.com/user-attachments/assets/69620a2e-a583-4e8b-99a0-6a952bf4d12c">
+
 
 <p align="right">(<a href="#top">back to top</a>)</p>
