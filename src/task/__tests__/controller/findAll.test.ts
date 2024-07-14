@@ -1,24 +1,22 @@
 import { TestBed } from "@automock/jest";
 
-import { ScheduleService } from "src/schedule/schedule.service";
-import { ScheduleController } from "src/schedule/schedule.controller";
+import { TaskController } from "src/task/task.controller";
+import { TaskService } from "src/task/task.service";
 
-describe("ScheduleController/findAll", () => {
-  let scheduleController: ScheduleController;
-  let scheduleService: jest.Mocked<ScheduleService>;
+describe("TaskController/findAll", () => {
+  let taskController: TaskController;
+  let taskService: jest.Mocked<TaskService>;
 
   beforeEach(() => {
-    const { unit, unitRef: container } = TestBed.create(ScheduleController).compile();
-    scheduleController = unit;
-    scheduleService = container.get(ScheduleService);
+    const { unit, unitRef: container } = TestBed.create(TaskController).compile();
+    taskController = unit;
+    taskService = container.get(TaskService);
   });
 
-  it("should invoke the schedule service findAll function", async () => {
-    jest.spyOn(scheduleService, "validateCreateSchedule").mockImplementation();
+  it("should invoke the task service findAll function", async () => {
+    const mockFindAll = jest.spyOn(taskService, "findAll").mockResolvedValue([] as any);
 
-    const mockFindAll = jest.spyOn(scheduleService, "findAll").mockResolvedValue([] as any);
-
-    const res = await scheduleController.findAll(1, 2);
+    const res = await taskController.findAll(1, 2);
 
     expect(mockFindAll).toHaveBeenCalledWith(1, 2);
 

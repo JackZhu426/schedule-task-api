@@ -14,8 +14,6 @@ describe("ScheduleController/remove", () => {
   });
 
   it("should invoke the schedule service remove function", async () => {
-    jest.spyOn(scheduleService, "validateCreateSchedule").mockImplementation();
-
     const mockRemove = jest.spyOn(scheduleService, "remove").mockResolvedValue({} as any);
 
     const res = await scheduleController.remove("123");

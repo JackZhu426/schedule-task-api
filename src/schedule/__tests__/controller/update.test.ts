@@ -18,8 +18,6 @@ describe("ScheduleController/update", () => {
   it("should invoke the schedule service update function", async () => {
     const updateScheduleDto: UpdateScheduleDTO = {};
 
-    jest.spyOn(scheduleService, "validateCreateSchedule").mockImplementation();
-
     const mockUpdate = jest.spyOn(scheduleService, "update").mockResolvedValue({} as any);
 
     const res = await scheduleController.update("123", updateScheduleDto);

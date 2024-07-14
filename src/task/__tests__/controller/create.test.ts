@@ -1,36 +1,38 @@
 import { TestBed } from "@automock/jest";
 
-import { ScheduleService } from "src/schedule/schedule.service";
-import { CreateScheduleDTO } from "src/schedule/dto/schedule.dto";
-import { ScheduleController } from "src/schedule/schedule.controller";
+import { CreateTaskDTO } from "src/task/dto/task.dto";
+import { TaskController } from "src/task/task.controller";
+import { TaskService } from "src/task/task.service";
 
-describe("ScheduleController/create", () => {
-  let scheduleController: ScheduleController;
-  let scheduleService: jest.Mocked<ScheduleService>;
+describe("TaskController/create", () => {
+  let taskController: TaskController;
+  let taskService: jest.Mocked<TaskService>;
 
   beforeEach(() => {
-    const { unit, unitRef: container } = TestBed.create(ScheduleController).compile();
-    scheduleController = unit;
-    scheduleService = container.get(ScheduleService);
+    const { unit, unitRef: container } = TestBed.create(TaskController).compile();
+    taskController = unit;
+    taskService = container.get(TaskService);
   });
 
-  it("should invoke the schedule service create function", async () => {
-    const createScheduleDto: CreateScheduleDTO = {
+  it("should invoke the task service create function", async () => {
+    const createScheduleDto: CreateTaskDTO = {
       accountId: 123,
-      agentId: 456,
-      startTime: new Date("2024-01-01T00:00:00Z"),
-      endTime: new Date("2024-01-01T01:00:00Z")
+      scheduleId: "123",
+      duration: 1000,
+      type: "WORK",
+      startTime: new Date("2024-01-01T00:00:00Z")
     };
 
-    const mockCreate = jest.spyOn(scheduleService, "create").mockResolvedValue({} as any);
+    const mockCreate = jest.spyOn(taskService, "create").mockResolvedValue({} as any);
 
-    const res = await scheduleController.create(createScheduleDto);
+    const res = await taskController.create(createScheduleDto);
 
     expect(mockCreate).toHaveBeenCalledWith({
       accountId: 123,
-      agentId: 456,
-      startTime: new Date("2024-01-01T00:00:00Z"),
-      endTime: new Date("2024-01-01T01:00:00Z")
+      scheduleId: "123",
+      duration: 1000,
+      type: "WORK",
+      startTime: new Date("2024-01-01T00:00:00Z")
     });
 
     expect(res).toEqual({});

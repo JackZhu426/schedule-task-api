@@ -1,24 +1,22 @@
 import { TestBed } from "@automock/jest";
 
-import { ScheduleService } from "src/schedule/schedule.service";
-import { ScheduleController } from "src/schedule/schedule.controller";
+import { TaskController } from "src/task/task.controller";
+import { TaskService } from "src/task/task.service";
 
-describe("ScheduleController/remove", () => {
-  let scheduleController: ScheduleController;
-  let scheduleService: jest.Mocked<ScheduleService>;
+describe("TaskController/remove", () => {
+  let taskController: TaskController;
+  let taskService: jest.Mocked<TaskService>;
 
   beforeEach(() => {
-    const { unit, unitRef: container } = TestBed.create(ScheduleController).compile();
-    scheduleController = unit;
-    scheduleService = container.get(ScheduleService);
+    const { unit, unitRef: container } = TestBed.create(TaskController).compile();
+    taskController = unit;
+    taskService = container.get(TaskService);
   });
 
-  it("should invoke the schedule service remove function", async () => {
-    jest.spyOn(scheduleService, "validateCreateSchedule").mockImplementation();
+  it("should invoke the task service remove function", async () => {
+    const mockRemove = jest.spyOn(taskService, "remove").mockResolvedValue({} as any);
 
-    const mockRemove = jest.spyOn(scheduleService, "remove").mockResolvedValue({} as any);
-
-    const res = await scheduleController.remove("123");
+    const res = await taskController.remove("123");
 
     expect(mockRemove).toHaveBeenCalledWith("123");
 

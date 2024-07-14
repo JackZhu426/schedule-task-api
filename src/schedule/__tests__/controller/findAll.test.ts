@@ -14,8 +14,6 @@ describe("ScheduleController/findAll", () => {
   });
 
   it("should invoke the schedule service findAll function", async () => {
-    jest.spyOn(scheduleService, "validateCreateSchedule").mockImplementation();
-
     const mockFindAll = jest.spyOn(scheduleService, "findAll").mockResolvedValue([] as any);
 
     const res = await scheduleController.findAll(1, 2);
