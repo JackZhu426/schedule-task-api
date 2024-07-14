@@ -12,12 +12,16 @@ import {
 } from "@nestjs/common";
 import { ScheduleService } from "./schedule.service";
 import { CreateScheduleDTO, UpdateScheduleDTO } from "./dto/schedule.dto";
+import { ApiCreatedResponse, ApiTags } from "@nestjs/swagger";
+import { ScheduleEntity } from "./entities/schedule.entity";
 
 @Controller("schedule")
+@ApiTags("schedule")
 export class ScheduleController {
   constructor(private readonly scheduleService: ScheduleService) {}
 
   @Post()
+  @ApiCreatedResponse({ type: ScheduleEntity })
   async create(@Body() createScheduleDto: CreateScheduleDTO) {
     return await this.scheduleService.create(createScheduleDto);
   }
