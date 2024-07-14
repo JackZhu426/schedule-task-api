@@ -53,6 +53,15 @@ Base URL: `http://localhost:3000`
 #### Payload Schema
 ##### POST /schedule (with tasks)
 > `startTime` should be after the current time, `endTime` should be after `startTime`
+
+| Field Key |   Field Type    |                                           Field Value                                            | Required |
+| :-------: | :-------------: | :----------------------------------------------------------------------------------------------: | :------: |
+| accountId |       Int       |                                            2025071405                                            |   YES    |
+|  agentId  |       Int       |                                               566                                                |   YES    |
+| startTime |  String (Date)  |                                      "2025-07-15T00:00:00Z"                                      |   YES    |
+|  endTime  |  String (Date)  |                                      "2025-07-17T00:00:00Z"                                      |   YES    |
+|   tasks   | Array of Object | [{"accountId": 2025071404, "startTime": "2025-07-14T23:59:00Z","duration": 1000,"type": "WORK"}] |    NO    |
+
 ```json
 {
     "accountId": 2025071405,
@@ -71,6 +80,7 @@ Base URL: `http://localhost:3000`
 ```
 
 ##### POST /schedule (without tasks)
+> same as above
 ```json
 {
     "accountId": 2025071405,
@@ -82,6 +92,17 @@ Base URL: `http://localhost:3000`
 
 ##### PATCH /schedule/:id
 > all fields are **optional**
+> 
+> `startTime` should be after the current time, `endTime` should be after `startTime`
+
+| Field Key |   Field Type    |                                           Field Value                                            | Required |
+| :-------: | :-------------: | :----------------------------------------------------------------------------------------------: | :------: |
+| accountId |       Int       |                                            2025071405                                            |    NO    |
+|  agentId  |       Int       |                                               566                                                |    NO    |
+| startTime |  String (Date)  |                                      "2025-07-15T00:00:00Z"                                      |    NO    |
+|  endTime  |  String (Date)  |                                      "2025-07-17T00:00:00Z"                                      |    NO    |
+|   tasks   | Array of Object | [{"accountId": 2025071404, "startTime": "2025-07-14T23:59:00Z","duration": 1000,"type": "WORK"}] |    NO    |
+
 ```json
 {
     "accountId": 444,
@@ -93,7 +114,17 @@ Base URL: `http://localhost:3000`
 
 ##### POST /task
 > `startTime` should be after the current time and, `startTime` + `duration` (i.e. task end time) should be before schedule's `endTime`
+> 
 > `scheduleId` must be valid
+
+| Field Key  |  Field Type   |              Field Value               | Required |
+| :--------: | :-----------: | :------------------------------------: | :------: |
+| accountId  |      Int      |               2024071406               |   YES    |
+| scheduleId |     UUID      | "851d227e-8e5e-4c3e-9ba4-91016dda5378" |   YES    |
+| startTime  | String (Date) |         "2025-07-15T00:00:00Z"         |   YES    |
+|  duration  | Int (seconds) |                  1000                  |   YES    |
+|    type    |     Enum      |            "WORK" / "BREAK"            |   YES    |
+
 ```json
 {
     "accountId": 2024071406,
@@ -106,6 +137,17 @@ Base URL: `http://localhost:3000`
 
 ##### PATCH /task/:id
 > all fields are **optional**
+>
+> `startTime` should be after the current time and, `startTime` + `duration` (i.e. task end time) should be before schedule's `endTime`
+
+| Field Key  |  Field Type   |              Field Value               | Required |
+| :--------: | :-----------: | :------------------------------------: | :------: |
+| accountId  |      Int      |               2024071406               |    NO    |
+| scheduleId |     UUID      | "851d227e-8e5e-4c3e-9ba4-91016dda5378" |    NO    |
+| startTime  | String (Date) |         "2025-07-15T00:00:00Z"         |    NO    |
+|  duration  | Int (seconds) |                  1000                  |    NO    |
+|    type    |     Enum      |            "WORK" / "BREAK"            |    NO    |
+
 ```json
 {
     "accountId": 444
