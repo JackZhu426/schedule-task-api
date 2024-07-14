@@ -11,6 +11,7 @@ export class PrismaClientExceptionFilter extends BaseExceptionFilter {
     const message = exception.message.replace(/\n/g, "");
 
     switch (exception.code) {
+      // P2025: Unique constraint failed
       case "P2025":
         const status = HttpStatus.BAD_REQUEST;
         response.status(status).json({

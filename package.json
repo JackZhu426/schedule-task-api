@@ -60,7 +60,8 @@
       "!**/*.interface.ts",
       "!**/*.dto.ts",
       "!**/*.entity.ts",
-      "!**/node_modules/**"
+      "!**/node_modules/**",
+      "!**/*.filter.ts"
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"

@@ -30,12 +30,12 @@ describe("TaskService/validateCreateTask", () => {
     const createTaskDTO: CreateTaskDTO = {
       accountId: 2024071102,
       scheduleId: "ac6bb267-77b6-466d-812b-0da7552345db",
-      startTime: new Date("2024-01-03T00:00:00Z"),
+      startTime: new Date("2024-01-01T00:00:00Z"),
       duration: 1000,
       type: "WORK"
     };
 
-    jest.spyOn(scheduleService, "findOne").mockImplementation();
+    jest.spyOn(scheduleService, "findOne").mockResolvedValue({} as any);
 
     const errorFn = async () => {
       await taskService.validateCreateTask(createTaskDTO);

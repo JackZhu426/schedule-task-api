@@ -184,9 +184,7 @@ export class TaskService {
 
     // 2. 'schedule' must exist - i.e. 'scheduleId' must be valid
     if (!schedule) {
-      throw new BadRequestException(
-        `Schedule with ID - ${newScheduleId} not found! Please input the right schedule ID`
-      );
+      throw new BadRequestException(`Schedule with ID - ${newScheduleId} not found`);
     }
 
     const { endTime: scheduleEndTime } = schedule;

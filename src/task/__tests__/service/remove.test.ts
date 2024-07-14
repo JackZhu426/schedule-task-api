@@ -2,28 +2,31 @@ import { TestBed } from "@automock/jest";
 
 import { ScheduleService } from "src/schedule/schedule.service";
 import { PrismaService } from "src/prisma/prisma.service";
+import { TaskService } from "src/task/task.service";
 
-describe("ScheduleService/remove", () => {
-  let scheduleService: ScheduleService;
+describe("TaskService/remove", () => {
+  let taskService: TaskService;
+  let scheduleService: jest.Mocked<ScheduleService>;
   let prismaService: jest.Mocked<PrismaService>;
 
   beforeEach(() => {
-    const { unit, unitRef: container } = TestBed.create(ScheduleService)
+    const { unit, unitRef: container } = TestBed.create(TaskService)
       .mock(PrismaService)
       .using({
-        schedule: {
+        task: {
           delete: jest.fn()
         }
       })
       .compile();
-    scheduleService = unit;
+    taskService = unit;
     prismaService = container.get(PrismaService);
+    scheduleService = container.get(ScheduleService);
   });
 
-  it("should successfully delete the corresponding schedule", async () => {
-    const mockDelete = jest.spyOn(prismaService.schedule, "delete").mockResolvedValue({} as any);
+  it("should successfully delete the corresponding task", async () => {
+    const mockDelete = jest.spyOn(prismaService.task, "delete").mockResolvedValue({} as any);
 
-    const res = await scheduleService.remove("ac6bb267-77b6-466d-812b-0da7552345db");
+    const res = await taskService.remove("ac6bb267-77b6-466d-812b-0da7552345db");
 
     expect(mockDelete).toHaveBeenCalledWith({
       where: { id: "ac6bb267-77b6-466d-812b-0da7552345db" }
@@ -33,10 +36,10 @@ describe("ScheduleService/remove", () => {
   });
 
   it("should throw error if function failed", async () => {
-    const mockDelete = jest.spyOn(prismaService.schedule, "delete").mockRejectedValue(new Error("error"));
+    const mockDelete = jest.spyOn(prismaService.task, "delete").mockRejectedValue(new Error("error"));
 
     const errorFn = async () => {
-      await scheduleService.remove("ac6bb267-77b6-466d-812b-0da7552345db");
+      await taskService.remove("ac6bb267-77b6-466d-812b-0da7552345db");
     };
 
     await expect(errorFn).rejects.toThrow("error");
