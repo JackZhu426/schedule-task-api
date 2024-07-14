@@ -208,7 +208,11 @@ npm run test:e2e
 <img width="743" alt="image" src="https://github.com/user-attachments/assets/f3e73049-d9d9-4600-8e1a-2faa044e3194">
 
 #### Get all schedules
-<img width="759" alt="image" src="https://github.com/user-attachments/assets/df9cb76a-da02-4c98-ad07-d303e7357e65">
+> with query params
+<img width="651" alt="image" src="https://github.com/user-attachments/assets/21bf8420-e47e-4f5e-9476-2e678fb9c31d">
+
+> NO query params
+<img width="737" alt="image" src="https://github.com/user-attachments/assets/f318eea3-6b4c-4366-a374-221e413e4446">
 
 #### Get one schedule
 <img width="729" alt="image" src="https://github.com/user-attachments/assets/69620a2e-a583-4e8b-99a0-6a952bf4d12c">
