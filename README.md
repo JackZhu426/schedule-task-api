@@ -37,12 +37,12 @@ Base URL: `http://localhost:3000`
 
 | HTTP Request |      API      |                                                                             Body                                                                             |
 | :----------: | :-----------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------: |
-|     GET      |   /schedule   |                                                                                                                                                              |
+|     GET      |   /schedule?page=1&limit=10   |                                                                                                                                                              |
 |     GET      | /schedule/:id |                                                                                                                                                              |
 |     POST     |   /schedule   |                   ```{"accountId": 2024071402, "agentId": 555, "startTime": "2025-07-15T00:00:00Z", "endTime": "2025-07-16T00:00:00Z"}```                    |
 |    PATCH     | /schedule/:id |                   ```{"accountId": 2024071403, "agentId": 556, "startTime": "2025-07-16T00:00:00Z", "endTime": "2025-07-17T00:00:00Z"}```                    |
 |    DELETE    | /schedule/:id |                                                                                                                                                              |
-|     GET      |     /task     |                                                                                                                                                              |
+|     GET      |     /task?page=1&limit=10     |                                                                                                                                                              |
 |     GET      |   /task/:id   |                                                                                                                                                              |
 |     POST     |     /task     | ```{"accountId": 2025071401, "scheduleId": "81553fef-ee0d-4fba-9d46-88d2a6e2817c", "startTime": "2025-07-14T23:59:00Z", "duration": 1000, "type": "WORK"}``` |
 |    PATCH     |   /task/:id   | ```{"accountId": 2025071401, "scheduleId": "81553fef-ee0d-4fba-9d46-88d2a6e2817c", "startTime": "2025-07-14T23:59:00Z", "duration": 1000, "type": "WORK"}``` |
